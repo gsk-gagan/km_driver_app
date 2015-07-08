@@ -7,15 +7,8 @@ import android.util.Log;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ServerRequests {
@@ -50,54 +43,21 @@ public class ServerRequests {
 
         @Override
         protected Void doInBackground(Void... params) {
-            Map<String,String> dataToSend = new HashMap<>();
-            dataToSend.put("name", user.name);
-            dataToSend.put("mobile", user.mobile);
-            dataToSend.put("cab_info", user.cabInfo);
-            dataToSend.put("serv_prov", user.servProv);
-            dataToSend.put("passwrd", user.passwrd);
+            //Sending the File to connect to
+            ServerConnection serverConnection = new ServerConnection(SERVER_ADDRESS + "register.php");
 
-            //Encoded String
-            String encodedStr = getEncodedData(dataToSend);
+            //Inserting data to send
+            serverConnection.putPair("name", user.name);
+            serverConnection.putPair("mobile", user.mobile);
+            serverConnection.putPair("cab_info", user.cabInfo);
+            serverConnection.putPair("serv_prov", user.servProv);
+            serverConnection.putPair("passwrd", user.passwrd);
 
-            //Connection Handling
-            BufferedReader reader = null;
+            //Executing the server connection
+            String returnedString = serverConnection.execute();
 
-            try {
-                URL url = new URL(SERVER_ADDRESS + "register.php");
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-
-                //Post Method
-                con.setRequestMethod("POST");
-                con.setDoOutput(true);
-                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
-                writer.write(encodedStr);
-                writer.flush();
-
-                StringBuilder sb = new StringBuilder();
-                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-                String line;
-                while((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-                line = sb.toString();
-
-                Log.i("gsk","The values received in the store part are as follows:");
-                Log.i("gsk",line);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if(reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
+            Log.i("gsk", "The values received in the store part are as follows:");
+            Log.i("gsk", returnedString);
 
             return null;
         }
@@ -108,24 +68,6 @@ public class ServerRequests {
             userCallback.done(null);
 
             super.onPostExecute(aVoid);
-        }
-
-        private String getEncodedData(Map<String,String> data) {
-            StringBuilder sb = new StringBuilder();
-            for(String key : data.keySet()) {
-                String value = null;
-                try {
-                    value = URLEncoder.encode(data.get(key),"UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-                if(sb.length()>0)
-                    sb.append("&");
-
-                sb.append(key + "=" + value);
-            }
-            return sb.toString();
         }
     }
 
@@ -141,39 +83,19 @@ public class ServerRequests {
 
         @Override
         protected User doInBackground(Void... params) {
-            Map<String,String> dataToSend = new HashMap<>();
-            dataToSend.put("mobile", user.mobile);
-            dataToSend.put("passwrd", user.passwrd);
-
-            //Encoded String
-            String encodedStr = getEncodedData(dataToSend);
-
-            //Connection Handling
-            BufferedReader reader = null;
+            ServerConnection serverConnection = new ServerConnection(SERVER_ADDRESS + "fetchUserData.php");
+            serverConnection.putPair("mobile", user.mobile);
+            serverConnection.putPair("passwrd", user.passwrd);
 
             User returnedUser = null;
             try {
-                URL url = new URL(SERVER_ADDRESS + "fetchUserData.php");
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                String returnedString = serverConnection.execute();
 
-                //Post Method
-                con.setRequestMethod("POST");
-                con.setDoOutput(true);
-                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
-                writer.write(encodedStr);
-                writer.flush();
-
-                StringBuilder sb = new StringBuilder();
-                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-                String line;
-                while((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-                line = sb.toString();
+                Log.i("gsk","The values received in the retrieve part are as follows:");
+                Log.i("gsk",returnedString);
 
                 //JSON Reading
-                JSONObject jObject = new JSONObject(line);
+                JSONObject jObject = new JSONObject(returnedString);
 
                 if(jObject.length()==0)
                     returnedUser = null;
@@ -186,25 +108,9 @@ public class ServerRequests {
 
                     returnedUser = new User(name, mobile, cab_info, serv_prov, passwrd);
                 }
-
-
-
-                Log.i("gsk","The values received in the retrieve part are as follows:");
-                Log.i("gsk",line);
-
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                if(reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
-
-
             return returnedUser;
         }
 
@@ -215,24 +121,5 @@ public class ServerRequests {
 
             super.onPostExecute(returnedUser);
         }
-
-        private String getEncodedData(Map<String,String> data) {
-            StringBuilder sb = new StringBuilder();
-            for(String key : data.keySet()) {
-                String value = null;
-                try {
-                    value = URLEncoder.encode(data.get(key),"UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-                if(sb.length()>0)
-                    sb.append("&");
-
-                sb.append(key + "=" + value);
-            }
-            return sb.toString();
-        }
-
     }
 }
