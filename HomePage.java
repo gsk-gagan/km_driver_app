@@ -21,7 +21,10 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 
 public class HomePage extends AppCompatActivity implements View.OnClickListener, LocationListener,
@@ -37,9 +40,10 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
 
     GoogleMap mMap;
     MapView mMapView;
+    Marker currentLocationMarker;
 
     private static final int GPS_ERRORDIALOG_REQUEST = 9001;
-    private static final float DEFAULT_ZOOM = 16;
+    private static final float DEFAULT_ZOOM = 18;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -53,7 +57,7 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         //Changing Toolbar Title
-        changeToolbarTitle("My Toolbar");
+        changeToolbarTitle("Waiting for Users");
 
         NavigationDrawerFragment drawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.fragment_navigation_drawer);
@@ -221,6 +225,20 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
         LatLng ll = new LatLng(lat, lng);
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(ll, zoom);
         mMap.animateCamera(update);
+
+        addMarker(lat,lng,"My Current Location");
+    }
+
+    private void addMarker(double lat, double lng, String title) {
+
+        if(currentLocationMarker != null)
+            currentLocationMarker.remove();
+
+        MarkerOptions options = new MarkerOptions()
+                .title(title)
+                .position(new LatLng(lat,lng))
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.cab_icon_map));
+        currentLocationMarker = mMap.addMarker(options);
     }
 
     @Override
@@ -276,4 +294,6 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
         String msg = "Location: " + location.getLatitude() + ", " + location.getLongitude();
         Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
     }
+
+
 }
