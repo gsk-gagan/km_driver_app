@@ -24,6 +24,10 @@ public class ServerConnection {
         dataToSend.put(key,value);
     }
 
+    public void clearData() {
+        dataToSend.clear();
+    }
+
     public String execute() {
         String result = "";
 

@@ -38,21 +38,17 @@ public class RegisterActivity extends AppCompatActivity {
 
                 boolean valid = true;
 
-                if(!passwrd1.matches(passwrd2))
-                {
-                    Toast.makeText(getApplicationContext(),"Passwords don't match, Re-Enter",Toast.LENGTH_LONG).show();
+                if (!passwrd1.matches(passwrd2)) {
+                    Toast.makeText(getApplicationContext(), "Passwords don't match, Re-Enter", Toast.LENGTH_LONG).show();
                     valid = false;
                 }
-                if((name.length()==0)||(mobile.length()==0)||(cabInfo.length()==0)||(servProv.length()==0)||(passwrd1.length()==0))
-                {
-                    Toast.makeText(getApplicationContext(),"Some of the fields are empty, Re-Enter",Toast.LENGTH_LONG).show();
+                if ((name.length() == 0) || (mobile.length() == 0) || (cabInfo.length() == 0) || (servProv.length() == 0) || (passwrd1.length() == 0)) {
+                    Toast.makeText(getApplicationContext(), "Some of the fields are empty, Re-Enter", Toast.LENGTH_LONG).show();
                     valid = false;
                 }
 
-                if(valid)
-                {
-                    User user = new User(name, mobile,cabInfo,servProv,passwrd1);
-
+                if (valid) {
+                    User user = new User(name, mobile, cabInfo, servProv, passwrd1);
                     registerUser(user);
                 }
                 break;
@@ -65,9 +61,17 @@ public class RegisterActivity extends AppCompatActivity {
         serverRequests.storeUserDataInBackground(user, new GetUserCallback() {
             @Override
             public void done(User returnedUser) {
-                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                if(returnedUser.mobile.equals("alr")) {
+                    Toast.makeText(getApplicationContext(), "Another user with same mobile Number already Exists", Toast.LENGTH_SHORT).show();
+                }
+                if(returnedUser.mobile.equals("don")) {
+                    Toast.makeText(getApplicationContext(), "Successfully Registered", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                }
+                if(returnedUser.mobile.equals("una")) {
+                    Toast.makeText(getApplicationContext(), "Unable to Connect to Server. Check your connection and Try Again", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
-
 }

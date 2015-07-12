@@ -3,10 +3,12 @@ package com.knowmiles.www.driverapp;
 import android.app.Dialog;
 import android.content.Intent;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,7 +34,7 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
 {
 
     Toolbar toolbar;
-    TextView txtVLogout;
+    TextView txtVLogout, txtVHistory, txtVProfile;
 
     TextView dName, cabInfo, servProv;
 
@@ -67,6 +69,12 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
         //Finding the logout button
         txtVLogout = (TextView) findViewById(R.id.txt_v_logout);
         txtVLogout.setOnClickListener(this);
+
+        txtVHistory = (TextView) findViewById(R.id.txt_v_pickup_history);
+        txtVHistory.setOnClickListener(this);
+
+        txtVProfile = (TextView) findViewById(R.id.txt_v_my_profile);
+        txtVProfile.setOnClickListener(this);
 
         //Finding the tags of basic info of user
         dName = (TextView) findViewById(R.id.txt_v_driver_name);
@@ -115,6 +123,16 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
 
                 //Move back to login Page
                 startActivity(new Intent(this, LoginActivity.class));
+                break;
+            }
+
+            case (R.id.txt_v_pickup_history): {
+                Toast.makeText(this, "Comming Soon", Toast.LENGTH_SHORT).show();
+                break;
+            }
+
+            case (R.id.txt_v_my_profile): {
+                Toast.makeText(this, "Comming Soon", Toast.LENGTH_SHORT).show();
                 break;
             }
         }
@@ -236,7 +254,7 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
 
         MarkerOptions options = new MarkerOptions()
                 .title(title)
-                .position(new LatLng(lat,lng))
+                .position(new LatLng(lat, lng))
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.cab_icon_map));
         currentLocationMarker = mMap.addMarker(options);
     }
@@ -293,6 +311,39 @@ public class HomePage extends AppCompatActivity implements View.OnClickListener,
         // this callback is invoked when location updates
         String msg = "Location: " + location.getLatitude() + ", " + location.getLongitude();
         Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
+
+        new passDriverLocation(dName.getText().toString(),location.getLatitude(),location.getLongitude()).execute();
+    }
+
+    public class passDriverLocation extends AsyncTask<Void, Void, Void> {
+        public static final String SERVER_ADDRESS = "http://knowmiles.hostingsiteforfree.com/driver/";
+
+        ServerConnection locationServerConnection;
+        double lat, lng;
+        String name;
+
+        public passDriverLocation (String name, double lat, double lng) {
+            locationServerConnection = new ServerConnection(SERVER_ADDRESS + "driverLocation.php");
+            this.name = name;
+            this.lat = lat;
+            this.lng = lng;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Log.i("gsk","Sending location data to server");
+            locationServerConnection.putPair("driver_id",name);
+            locationServerConnection.putPair("lat",Double.toString(lat));
+            locationServerConnection.putPair("lng", Double.toString(lng));
+            try {
+                String returnedString = locationServerConnection.execute();
+                Log.i("gsk", "The values received in the store part are as follows:");
+                Log.i("gsk",returnedString);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
 
